@@ -21,11 +21,11 @@ app.use(express.static('public'));
 // Configuration
 const apikey = 'ptla_asKlxX7b4g5Ha8HrzZFDDaA6hHldcwbtxgNDv6RnnVR';
 const capikey = 'ptlc_X9YMq4EVTNm4n88onrt38KPMDnUCdU03FMIOqRGeO6R';
-const domain = 'https://cardmarket.servercloud.my.id/admin/api';
+const domain = 'https://cardmarket.servercloud.my.id';
 const nestid = '5';
 const egg = '15';
 const loc = '1';
-const gmailadmin = 'adm@gmail.com'; // Admin email that won't be deleted
+const gmailadmin = 'zoraacnl@gmail.com'; // Admin email that won't be deleted
 const telegramBotToken = '8153373433:AAG06h5AHK77M7Wf8_PFEdmVZYhuqsd69fs';
 const adminTelegramId = '7869580790';
 
@@ -53,13 +53,19 @@ async function sendTelegramMessage(chatId, message) {
   }
 }
 
-// Authentication endpoint
+// Authentication endpoint (UPDATED)
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
 
+  // Akun Admin 1
   if (username === 'isidewek' && password === 'isidewek') {
     res.json({ success: true, user: { username: 'isidewek', role: 'admin' } });
-  } else {
+  } 
+  // Akun Admin 2 (Baru)
+  else if (username === 'zoraacnl' && password === 'GHERY0987') {
+    res.json({ success: true, user: { username: 'zoraacnl', role: 'admin' } });
+  } 
+  else {
     res.status(401).json({ error: 'Invalid credentials' });
   }
 });
