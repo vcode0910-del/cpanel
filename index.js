@@ -18,42 +18,23 @@ app.use(cors({
 app.use(express.json());
 app.use(express.static('public'));
 
-// Configuration
+// --- Configuration ---
+// Ganti dengan kredensial Pterodactyl Anda
 const apikey = 'ptla_asKlxX7b4g5Ha8HrzZFDDaA6hHldcwbtxgNDv6RnnVR';
 const capikey = 'ptlc_X9YMq4EVTNm4n88onrt38KPMDnUCdU03FMIOqRGeO6R';
-const domain = 'https://cardmarket.servercloud.my.id/admin/users';
+const domain = 'https://cardmarket.servercloud.my.id';
 const nestid = '5';
 const egg = '15';
 const loc = '1';
 const gmailadmin = 'zoraacnl@gmail.com'; // Admin email that won't be deleted
-const telegramBotToken = '8153373433:AAG06h5AHK77M7Wf8_PFEdmVZYhuqsd69fs';
-const adminTelegramId = '7869580790';
 
-// In-memory storage
+// In-memory storage (Database sementara)
 let servers = [];
 let users = [];
 let admins = [];
 
-// Telegram helper function
-async function sendTelegramMessage(chatId, message) {
-  try {
-    const response = await fetch(`https://api.telegram.org/bot${telegramBotToken}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: message,
-        parse_mode: 'HTML'
-      })
-    });
-    return response.ok;
-  } catch (error) {
-    console.error('Telegram error:', error);
-    return false;
-  }
-}
-
-// Authentication endpoint (UPDATED)
+// --- LOGIN ENDPOINT ---
+// Akun admin diatur di sini (Hardcoded)
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
 
@@ -61,18 +42,18 @@ app.post('/api/login', (req, res) => {
   if (username === 'isidewek' && password === 'isidewek') {
     res.json({ success: true, user: { username: 'isidewek', role: 'admin' } });
   } 
-  // Akun Admin 2 (Baru)
+  // Akun Admin 2
   else if (username === 'zoraacnl' && password === 'GHERY0987') {
     res.json({ success: true, user: { username: 'zoraacnl', role: 'admin' } });
   } 
   else {
-    res.status(401).json({ error: 'Invalid credentials' });
+    res.status(401).json({ error: 'Username atau Password salah!' });
   }
 });
 
 // Create panel
 app.post('/api/create', async (req, res) => {
-  const { username, email, ram, disk, cpu, telegramId } = req.body;
+  const { username, email, ram, disk, cpu } = req.body;
   const password = username + Math.floor(Math.random() * 10000);
   const name = username + '-server';
 
@@ -188,33 +169,11 @@ app.post('/api/create', async (req, res) => {
       username,
       email,
       password,
-      telegramId,
       createdAt: new Date()
     };
     users.push(user);
 
-    // Send to Telegram
-    const telegramMessage = `🆕 <b>New Panel Created!</b>
-
-📊 <b>Panel Details:</b>
-🌐 Domain: ${domain}
-👤 Username: <code>${username}</code>
-🔑 Password: <code>${password}</code>
-📧 Email: ${email}
-🖥️ Server ID: ${serverData.attributes.id}
-💾 RAM: ${ram}MB
-💿 Disk: ${disk || ram}MB
-⚡ CPU: ${cpu || 100}%
-
-🎉 Panel siap digunakan!`;
-
-    if (telegramId) {
-      await sendTelegramMessage(telegramId, telegramMessage);
-    }
-
-    // Notify admin
-    await sendTelegramMessage(adminTelegramId, telegramMessage);
-
+    // Response success without Telegram
     res.json({
       username,
       password,
@@ -332,19 +291,6 @@ app.post('/api/create-admin', async (req, res) => {
       createdAt: new Date()
     });
 
-    // Send to Telegram
-    const telegramMessage = `👑 <b>New Admin Created!</b>
-
-📊 <b>Admin Details:</b>
-🌐 Panel URL: ${domain}
-👤 Username: <code>${username}</code>
-🔑 Password: <code>${password}</code>
-📧 Email: ${email}
-
-🎉 Admin account ready!`;
-
-    await sendTelegramMessage(adminTelegramId, telegramMessage);
-
     res.json({
       username,
       password,
@@ -440,8 +386,6 @@ app.post('/api/delete-all-users', async (req, res) => {
     // Clear local storage except admin
     users = users.filter(u => u.email === gmailadmin);
 
-    await sendTelegramMessage(adminTelegramId, `🗑️ Bulk Delete: ${deletedCount} users deleted`);
-
     res.json({ success: true, deletedCount });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete users', detail: err.message });
@@ -496,8 +440,6 @@ app.post('/api/delete-all-servers', async (req, res) => {
     // Clear local storage
     servers = [];
 
-    await sendTelegramMessage(adminTelegramId, `🗑️ Bulk Delete: ${deletedCount} servers deleted`);
-
     res.json({ success: true, deletedCount });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete servers', detail: err.message });
@@ -544,7 +486,7 @@ app.get('/api/server-status', async (req, res) => {
         const age = localServer ? 
           Math.floor((Date.now() - localServer.createdAt.getTime()) / (1000 * 60 * 60 * 24)) : 0;
 
-        serverStatus.push({
+           serverStatus.push({
           id: server.attributes.id,
           name: server.attributes.name,
           status: isRunning ? 'running' : 'stopped',
@@ -552,11 +494,6 @@ app.get('/api/server-status', async (req, res) => {
           username: localServer ? localServer.username : 'Unknown'
         });
 
-        // Check for 30-day servers
-        if (age >= 30) {
-          await sendTelegramMessage(adminTelegramId, 
-            `⚠️ Server "${server.attributes.name}" is ${age} days old and should be reviewed for deletion.`);
-        }
       } catch (err) {
         stoppedCount++;
         serverStatus.push({
