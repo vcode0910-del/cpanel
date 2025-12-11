@@ -21,7 +21,7 @@ app.use(express.static('public'));
 // Configuration
 const apikey = 'ptla_asKlxX7b4g5Ha8HrzZFDDaA6hHldcwbtxgNDv6RnnVR';
 const capikey = 'ptlc_X9YMq4EVTNm4n88onrt38KPMDnUCdU03FMIOqRGeO6R';
-const domain = 'https://cardmarket.servercloud.my.id';
+const domain = 'https://cardmarket.servercloud.my.id/admin/users';
 const nestid = '5';
 const egg = '15';
 const loc = '1';
